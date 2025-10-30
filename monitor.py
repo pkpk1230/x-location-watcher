@@ -5,18 +5,32 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-from discord_webhook import DiscordWebhook
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_state.txt"
 TARGET_URL = "https://twitter.com/korekore19"
 
-def send_to_discord(message):
-    print("📤 Discord通知:", message)
-    try:
-        DiscordWebhook(url=WEBHOOK_URL, content=message).execute()
-    except Exception as e:
-        print("❌ Discord通知に失敗:", e)
+def send_embed(location_text=None, url_text=None):
+    webhook = DiscordWebhook(url=WEBHOOK_URL)
+
+    embed = DiscordEmbed(
+        title="📢 Korekoreプロフィール更新",
+        description="以下の項目が変更されました",
+        url=TARGET_URL,
+        color=0xFFFF00
+    )
+
+    if location_text:
+        embed.add_embed_field(name="📍 場所欄", value=location_text, inline=False)
+    if url_text:
+        embed.add_embed_field(name="🔗 リンク欄", value=url_text, inline=False)
+
+    embed.set_footer(text="自動監視Botより")
+    embed.set_timestamp()
+
+    webhook.add_embed(embed)
+    webhook.execute()
 
 def get_location_and_url():
     chromedriver_autoinstaller.install()
@@ -62,7 +76,10 @@ def load_last_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r", encoding="utf-8") as f:
             lines = f.read().splitlines()
-            return lines if len(lines) == 2 else ["", ""]
+            if len(lines) == 2:
+                return lines
+            elif len(lines) == 1:
+                return [lines[0], ""]
     return ["", ""]
 
 def save_state(location, url):
@@ -79,14 +96,11 @@ def main():
     print("📍 前回の場所欄:", last_location)
     print("🔗 前回のリンク欄:", last_url)
 
-    changes = []
-    if current_location != last_location:
-        changes.append(f"📍 場所欄が更新されました:\n「{current_location}」")
-    if current_url != last_url:
-        changes.append(f"🔗 リンク欄が更新されました:\n「{current_url}」")
+    loc_diff = current_location if current_location != last_location else None
+    url_diff = current_url if current_url != last_url else None
 
-    if changes:
-        send_to_discord("\n\n".join(changes))
+    if loc_diff or url_diff:
+        send_embed(location_text=loc_diff, url_text=url_diff)
         save_state(current_location, current_url)
     else:
         print("✅ 変化なし。通知は不要です。")
