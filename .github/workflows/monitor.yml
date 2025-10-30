@@ -1,4 +1,4 @@
-name: Monitor Korekore Location (Lightweight)
+name: Monitor Korekore Location (Lightweight via Nitter)
 
 on:
   schedule:
