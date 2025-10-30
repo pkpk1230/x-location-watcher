@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 
 USERNAME = "korekore19"
 BEARER_TOKEN = os.environ["X_BEARER_TOKEN"]
@@ -39,14 +40,28 @@ def get_user_id_cached():
 def get_location(user_id):
     if user_id is None:
         return ""
+
     url = f"https://api.twitter.com/2/users/{user_id}"
     headers = {"Authorization": f"Bearer {BEARER_TOKEN}"}
     res = requests.get(url, headers=headers)
+
     print("🛰 プロフィール取得レスポンス:", res.status_code)
     print("📦 内容:", res.text)
+
+    # レート制限情報の抽出
+    limit = res.headers.get("x-rate-limit-limit", "不明")
+    remaining = res.headers.get("x-rate-limit-remaining", "不明")
+    reset_unix = res.headers.get("x-rate-limit-reset", None)
+    reset_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(reset_unix))) if reset_unix else "不明"
+
     if res.status_code == 429:
-        print("⚠️ レート制限中（429）")
+        send_to_discord(
+            f"❌ プロフィール情報の取得に失敗しました（429 Too Many Requests）\n"
+            f"📊 レート制限: 残り {remaining} / {limit} 回\n"
+            f"⏰ リセット予定: {reset_time}"
+        )
         return ""
+
     data = res.json()
     if "data" in data:
         return data["data"].get("location", "")
