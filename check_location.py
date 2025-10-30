@@ -4,17 +4,23 @@ import re
 import json
 from bs4 import BeautifulSoup
 
-TARGET_USERNAME = os.environ.get("korekore19")  # 監視対象のXユーザー名（@なし）
-DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK")
+# ここに直接監視対象を設定
+TARGET_USERNAME = "korekore19"  
+DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1433428950918496378/1AMU_3Cnp_1rkWZv5q2QI4BSDdPl6M_pGoPOKEwauf1X56OBtjkjO0QyDsw6aq2uUiix"
+
 LAST_FILE = "last_location.json"
 USER_AGENT = "Mozilla/5.0 (compatible; LocationWatcher/1.0)"
 
 def get_profile_location(username):
     url = f"https://x.com/{username}"
     headers = {"User-Agent": USER_AGENT}
-    r = requests.get(url, headers=headers, timeout=15)
-    if r.status_code != 200:
-        print("取得失敗:", r.status_code)
+    try:
+        r = requests.get(url, headers=headers, timeout=15)
+        if r.status_code != 200:
+            print(f"取得失敗: HTTP {r.status_code}")
+            return None
+    except Exception as e:
+        print("Request error:", e)
         return None
 
     soup = BeautifulSoup(r.text, "html.parser")
@@ -26,7 +32,7 @@ def get_profile_location(username):
     meta = soup.find("meta", {"property": "og:description"})
     if meta:
         desc = meta.get("content", "")
-        m2 = re.search(r"(?:Location|場所)[:：]?\s*([^\n\r\t]{1,200})", desc, re.IGNORECASE)
+        m2 = re.search(r"(?:場所|Location)[:：]?\s*([^\n\r\t]{1,200})", desc, re.IGNORECASE)
         if m2:
             return m2.group(1).strip()
     return None
@@ -43,18 +49,16 @@ def save_last(loc):
 
 def notify_discord(location):
     message = f"位置情報が更新されました！→ [{location}]"
-    payload = {"content": message}
-    requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
+    try:
+        r = requests.post(DISCORD_WEBHOOK, json={"content": message}, timeout=10)
+        print("Discord通知ステータス:", r.status_code)
+    except Exception as e:
+        print("Discord通知失敗:", e)
 
 def main():
-    username = TARGET_USERNAME
-    if not username:
-        print("TARGET_USERNAME が設定されていません")
-        return
-
-    current = get_profile_location(username)
+    current = get_profile_location(TARGET_USERNAME)
     if not current:
-        print("位置情報を取得できませんでした")
+        print("位置情報を取得できませんでした。")
         return
 
     last = load_last()
