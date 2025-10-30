@@ -4,6 +4,7 @@ import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
 from discord_webhook import DiscordWebhook
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -37,8 +38,10 @@ def get_location_text():
         f.write(html)
 
     try:
-        location_elem = driver.find_element(By.XPATH, '//span[contains(text(),"所在地")]/following-sibling::span')
-        location = location_elem.text.strip()
+        location_elem = driver.find_element(By.XPATH, '//*[@data-testid="UserLocation"]')
+        location_html = location_elem.get_attribute("innerHTML")
+        soup = BeautifulSoup(location_html, "html.parser")
+        location = soup.get_text(separator="", strip=True)
     except Exception:
         location = ""
 
