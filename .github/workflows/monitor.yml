@@ -1,8 +1,8 @@
-name: Monitor Korekore Location (Selenium)
+name: Monitor Korekore Location (Selenium + ChromeDriver)
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # 30分ごとに自動実行
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -18,12 +18,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Chrome and ChromeDriver
         run: |
-          pip install selenium discord-webhook
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
-          sudo ln -s /usr/bin/chromium-browser /usr/bin/google-chrome
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          wget https://chromedriver.storage.googleapis.com/${CHROME_VERSION}/chromedriver_linux64.zip || wget https://chromedriver.storage.googleapis.com/$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
+
+      - name: Install Python dependencies
+        run: pip install selenium discord-webhook
 
       - name: Run monitor
         env:
