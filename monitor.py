@@ -2,6 +2,7 @@ import os
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from discord_webhook import DiscordWebhook
 
@@ -25,9 +26,10 @@ def get_location_text():
     options.add_argument("--lang=ja-JP")
     options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-    driver = webdriver.Chrome(options=options)
+    service = Service("/usr/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=options)
     driver.get(TARGET_URL)
-    time.sleep(5)  # ページ読み込み待機
+    time.sleep(5)
 
     html = driver.page_source
     with open("html_dump.txt", "w", encoding="utf-8") as f:
