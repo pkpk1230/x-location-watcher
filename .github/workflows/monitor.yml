@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install Python dependencies
-        run: pip install selenium discord-webhook chromedriver-autoinstaller
+        run: pip install selenium discord-webhook chromedriver-autoinstaller beautifulsoup4
 
       - name: Run monitor
         env:
