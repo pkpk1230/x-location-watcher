@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_location.txt"
-NITTER_URL = "https://nitter.net/korekore19"
+NITTER_URL = "https://nitter.poast.org/korekore19"
 
 def send_to_discord(message):
     print("📤 Discord通知:", message)
@@ -14,9 +14,11 @@ def send_to_discord(message):
         print("❌ Discord通知に失敗:", e)
 
 def get_location_text():
-    res = requests.get(NITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    res = requests.get(NITTER_URL, headers=headers)
 
-    # ✅ HTMLを保存（Artifacts用）
     with open("html_dump.txt", "w", encoding="utf-8") as f:
         f.write(res.text)
 
