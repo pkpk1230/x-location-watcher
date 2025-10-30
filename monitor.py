@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_location.txt"
-TWITTER_URL = "https://mobile.twitter.com/korekore19"
+NITTER_URL = "https://nitter.net/korekore19"
 
 def send_to_discord(message):
     print("📤 Discord通知:", message)
@@ -14,15 +14,13 @@ def send_to_discord(message):
         print("❌ Discord通知に失敗:", e)
 
 def get_location_text():
-    res = requests.get(TWITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
+    res = requests.get(NITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
     soup = BeautifulSoup(res.text, "html.parser")
 
-    # ✅ HTML全体を保存して構造を調査
-    with open("html_dump.txt", "w", encoding="utf-8") as f:
-        f.write(res.text)
-
-    # ⛔ 現時点では場所欄の抽出はスキップ（構造調査が目的）
-    return ""
+    location_elem = soup.find("div", class_="profile-location")
+    location = location_elem.text.strip() if location_elem else ""
+    print("📍 抽出された場所欄:", location)
+    return location
 
 def load_last_location():
     if os.path.exists(STATE_FILE):
