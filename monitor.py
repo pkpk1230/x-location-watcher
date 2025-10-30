@@ -42,5 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-send_to_discord("✅ Discord通知テスト成功！")
