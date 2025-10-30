@@ -1,30 +1,45 @@
 import os
-import requests
-from bs4 import BeautifulSoup
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from discord_webhook import DiscordWebhook
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_location.txt"
-NITTER_URL = "https://nitter.poast.org/korekore19"
+TARGET_URL = "https://twitter.com/korekore19"
 
 def send_to_discord(message):
     print("📤 Discord通知:", message)
     try:
-        requests.post(WEBHOOK_URL, json={"content": message})
+        DiscordWebhook(url=WEBHOOK_URL, content=message).execute()
     except Exception as e:
         print("❌ Discord通知に失敗:", e)
 
 def get_location_text():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    res = requests.get(NITTER_URL, headers=headers)
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--lang=ja-JP")
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
+    driver = webdriver.Chrome(options=options)
+    driver.get(TARGET_URL)
+    time.sleep(5)  # ページ読み込み待機
+
+    html = driver.page_source
     with open("html_dump.txt", "w", encoding="utf-8") as f:
-        f.write(res.text)
+        f.write(html)
 
-    soup = BeautifulSoup(res.text, "html.parser")
-    location_elem = soup.find("div", class_="profile-location")
-    location = location_elem.text.strip() if location_elem else ""
+    try:
+        location_elem = driver.find_element(By.XPATH, '//span[contains(text(),"所在地")]/following-sibling::span')
+        location = location_elem.text.strip()
+    except Exception:
+        location = ""
+
+    driver.quit()
     print("📍 抽出された場所欄:", location)
     return location
 
