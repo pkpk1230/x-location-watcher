@@ -1,14 +1,10 @@
 import os
-import time
 import requests
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
 
-# 🔐 Discord Webhookを直接設定（GitHub Secrets推奨）
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_location.txt"
-TWITTER_URL = "https://twitter.com/korekore19"
+TWITTER_URL = "https://mobile.twitter.com/korekore19"
 
 def send_to_discord(message):
     print("📤 Discord通知:", message)
@@ -18,30 +14,19 @@ def send_to_discord(message):
         print("❌ Discord通知に失敗:", e)
 
 def get_location_text():
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=1920,1080")
-    driver = webdriver.Chrome(options=options)
+    res = requests.get(TWITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
+    soup = BeautifulSoup(res.text, "html.parser")
 
-    try:
-        driver.get(TWITTER_URL)
-        time.sleep(5)  # ページ読み込み待ち（必要に応じて調整）
+    # ✅ プロフィール欄の場所を含む要素を抽出（構造は要確認）
+    profile_blocks = soup.find_all("div", class_="profile-field")
+    location = ""
+    for block in profile_blocks:
+        if "Location" in block.text or "場所" in block.text:
+            location = block.text.strip()
+            break
 
-        # ✅ 場所欄を含む要素を抽出（XPathはTwitterの構造に依存）
-        elems = driver.find_elements(By.XPATH, '//span[contains(text(),"生年月日")]/ancestor::div[1]/following-sibling::div//span')
-        location = ""
-        for elem in elems:
-            txt = elem.text.strip()
-            if txt and "から利用しています" not in txt and "生年月日" not in txt:
-                location = txt
-                break
-
-        print("📍 抽出された場所欄:", location)
-        return location
-    finally:
-        driver.quit()
+    print("📍 抽出された場所欄:", location)
+    return location
 
 def load_last_location():
     if os.path.exists(STATE_FILE):
