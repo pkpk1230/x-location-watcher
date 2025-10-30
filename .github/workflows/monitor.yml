@@ -2,7 +2,7 @@ name: Monitor Korekore Profile
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/15 * * * *'  # 15分ごとに実行
   workflow_dispatch:
 
 jobs:
@@ -21,10 +21,22 @@ jobs:
       - name: Install Python dependencies
         run: pip install selenium discord-webhook chromedriver-autoinstaller beautifulsoup4
 
+      - name: Restore last state
+        uses: actions/download-artifact@v4
+        with:
+          name: last_state
+          path: .
+
       - name: Run monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python monitor.py
+
+      - name: Save last state
+        uses: actions/upload-artifact@v4
+        with:
+          name: last_state
+          path: last_state.txt
 
       - name: Upload HTML dump
         uses: actions/upload-artifact@v4
