@@ -2,7 +2,7 @@ name: Check X Profile Location
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # 15分ごとにチェック
+    - cron: "*/15 * * * *"  # 15分ごとに実行
   workflow_dispatch:  # 手動実行も可
 
 jobs:
@@ -15,12 +15,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: pip install requests beautifulsoup4
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
 
       - name: Run check script
-        env:
-          TARGET_USERNAME: korekore19
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python check_location.py
 
       - name: Save last_location
@@ -28,5 +26,5 @@ jobs:
           git config user.name "LocationBot"
           git config user.email "bot@example.com"
           git add last_location.json || true
-          git commit -m "update" || echo "no change"
-          git push || echo "no push"
+          git commit -m "update last_location" || echo "no change"
+          git push || echo "push failed"
