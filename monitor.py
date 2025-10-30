@@ -17,16 +17,12 @@ def get_location_text():
     res = requests.get(TWITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
     soup = BeautifulSoup(res.text, "html.parser")
 
-    # ✅ プロフィール欄の場所を含む要素を抽出（構造は要確認）
-    profile_blocks = soup.find_all("div", class_="profile-field")
-    location = ""
-    for block in profile_blocks:
-        if "Location" in block.text or "場所" in block.text:
-            location = block.text.strip()
-            break
+    # ✅ HTML全体を保存して構造を調査
+    with open("html_dump.txt", "w", encoding="utf-8") as f:
+        f.write(res.text)
 
-    print("📍 抽出された場所欄:", location)
-    return location
+    # ⛔ 現時点では場所欄の抽出はスキップ（構造調査が目的）
+    return ""
 
 def load_last_location():
     if os.path.exists(STATE_FILE):
