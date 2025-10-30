@@ -1,4 +1,4 @@
-name: Monitor Korekore Location (Stable Selenium)
+name: Monitor Korekore Profile
 
 on:
   schedule:
