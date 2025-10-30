@@ -15,8 +15,12 @@ def send_to_discord(message):
 
 def get_location_text():
     res = requests.get(NITTER_URL, headers={"User-Agent": "Mozilla/5.0"})
-    soup = BeautifulSoup(res.text, "html.parser")
 
+    # ✅ HTMLを保存（Artifacts用）
+    with open("html_dump.txt", "w", encoding="utf-8") as f:
+        f.write(res.text)
+
+    soup = BeautifulSoup(res.text, "html.parser")
     location_elem = soup.find("div", class_="profile-location")
     location = location_elem.text.strip() if location_elem else ""
     print("📍 抽出された場所欄:", location)
