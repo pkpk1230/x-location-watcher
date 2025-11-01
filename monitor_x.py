@@ -46,8 +46,6 @@ def get_location_and_url():
         url_text = ""
 
     driver.quit()
-    print("📍 取得した場所欄:", location)
-    print("🔗 取得したリンク欄:", url_text)
     return location, url_text
 
 def load_last_state():
@@ -74,21 +72,26 @@ def send_embed(location_text=None, url_text=None):
     print("✅ 通知送信完了")
 
 def main():
+    print("🚀 Xプロフィール監視Bot開始")
     current_location, current_url = get_location_and_url()
     last_location, last_url = load_last_state()
 
+    print("📍 現在の場所欄:", current_location)
     print("📍 前回の場所欄:", last_location)
+    print("🔗 現在のリンク欄:", current_url)
     print("🔗 前回のリンク欄:", last_url)
 
     loc_diff = current_location if current_location != last_location else None
     url_diff = current_url if current_url != last_url else None
 
     if loc_diff or url_diff:
-        print("📢 変化あり → 通知送信")
+        print("📢 状態変化を検知 → 通知送信")
         send_embed(loc_diff, url_diff)
         save_state(current_location, current_url)
     else:
-        print("✅ 変化なし → 通知なし")
+        print("✅ 状態変化なし → 通知なし")
+
+    print("🏁 Xプロフィール監視Bot終了")
 
 if __name__ == "__main__":
     main()
