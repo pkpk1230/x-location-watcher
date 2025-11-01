@@ -34,14 +34,20 @@ def get_location_and_url():
         text = soup.find("span").get_text(strip=True)
         emojis = "".join(img.get("alt", "") for img in soup.find_all("img"))
         location = text + emojis
-    except: location = ""
+    except Exception as e:
+        print("⚠️ 場所欄取得失敗:", e)
+        location = ""
 
     try:
         url_elem = driver.find_element(By.XPATH, '//*[@data-testid="UserUrl"]')
         url_text = url_elem.text.strip()
-    except: url_text = ""
+    except Exception as e:
+        print("⚠️ リンク欄取得失敗:", e)
+        url_text = ""
 
     driver.quit()
+    print("📍 取得した場所欄:", location)
+    print("🔗 取得したリンク欄:", url_text)
     return location, url_text
 
 def load_last_state():
@@ -56,6 +62,7 @@ def save_state(location, url):
         f.write(location + "\n" + url)
 
 def send_embed(location_text=None, url_text=None):
+    print("📤 通知送信準備中...")
     webhook = DiscordWebhook(url=WEBHOOK_URL)
     fields = {
         "📍 場所欄": location_text,
@@ -64,13 +71,12 @@ def send_embed(location_text=None, url_text=None):
     embed = create_embed("x", "profile_change", TARGET_URL, fields)
     webhook.add_embed(embed)
     webhook.execute()
+    print("✅ 通知送信完了")
 
 def main():
     current_location, current_url = get_location_and_url()
-    print("📍 現在の場所欄:", current_location)
-    print("🔗 現在のリンク欄:", current_url)
-
     last_location, last_url = load_last_state()
+
     print("📍 前回の場所欄:", last_location)
     print("🔗 前回のリンク欄:", last_url)
 
@@ -83,3 +89,6 @@ def main():
         save_state(current_location, current_url)
     else:
         print("✅ 変化なし → 通知なし")
+
+if __name__ == "__main__":
+    main()
