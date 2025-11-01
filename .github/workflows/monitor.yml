@@ -1,41 +1,30 @@
-name: Monitor Korekore Profile
+name: Monitor X Profile
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   monitor:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-
-      - name: Restore last state from cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         with:
           path: last_state.txt
-          key: last-state-cache-${{ github.run_id }}
-          restore-keys: |
-            last-state-cache-
-
-      - name: Install Python dependencies
-        run: pip install selenium discord-webhook chromedriver-autoinstaller beautifulsoup4
-
-      - name: Run monitor
+          key: x-state-${{ github.run_id }}
+          restore-keys: x-state-
+      - run: pip install selenium discord-webhook chromedriver-autoinstaller beautifulsoup4
+      - name: Run X monitor
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python monitor.py
-
-      - name: Upload HTML dump
-        uses: actions/upload-artifact@v4
+          DISCORD_WEBHOOK_B: ${{ secrets.X_WEBHOOK }}
+          X_TARGET_URL: ${{ secrets.X_TARGET_URL }}
+        run: python monitor_x.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: html_dump
+          name: x_html_dump
           path: html_dump.txt
