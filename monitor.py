@@ -9,7 +9,7 @@ from discord_webhook import DiscordWebhook, DiscordEmbed
 
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 STATE_FILE = "last_state.txt"
-TARGET_URL = "https://twitter.com/korekore19"
+TARGET_URL = "https://x.com/chopkx2"
 
 def send_embed(location_text=None, url_text=None):
     webhook = DiscordWebhook(url=WEBHOOK_URL)
