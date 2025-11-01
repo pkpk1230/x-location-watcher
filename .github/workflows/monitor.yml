@@ -22,7 +22,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: last_state.txt
-          key: last-state-cache
+          key: last-state-cache-${{ github.run_id }}
+          restore-keys: |
+            last-state-cache-
 
       - name: Install Python dependencies
         run: pip install selenium discord-webhook chromedriver-autoinstaller beautifulsoup4
